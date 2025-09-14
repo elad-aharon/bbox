@@ -3,9 +3,10 @@ package testutils
 import (
 	"bbox/pkg/types"
 	"bbox/teamcity"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"time"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockTeamCityClient struct {
@@ -23,8 +24,8 @@ type MockBuildService struct {
 	mock.Mock
 }
 
-func (m *MockBuildService) WaitForBuild(buildName string, buildNumber int, timeout time.Duration) (types.BuildStatusResponse, error) {
-	args := m.Called(buildName, buildNumber, timeout)
+func (m *MockBuildService) WaitForBuild(buildName string, buildNumber int, timeout time.Duration, expectedStatuses []string) (types.BuildStatusResponse, error) {
+	args := m.Called(buildName, buildNumber, timeout, expectedStatuses)
 
 	_, err := m.GetBuildStatus(buildNumber)
 	if err != nil {

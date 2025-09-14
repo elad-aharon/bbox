@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -41,7 +42,7 @@ type Client struct {
 type IBuildService interface {
 	GetBuildStatus(buildID int) (types.BuildStatusResponse, error)
 	TriggerBuild(buildTypeID, branchName string, params map[string]string) (types.TriggerBuildWithParametersResponse, error)
-	WaitForBuild(buildName string, buildNumber int, timeout time.Duration) (types.BuildStatusResponse, error)
+	WaitForBuild(buildName string, buildNumber int, timeout time.Duration, expectedStatuses []string) (types.BuildStatusResponse, error)
 }
 
 type IArtifactsService interface {

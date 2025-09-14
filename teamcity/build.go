@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"bbox/pkg/types"
@@ -107,7 +108,7 @@ func (bs *BuildService) TriggerBuild(buildTypeID, branchName string, params map[
 }
 
 // WaitForBuild waits for a build to finish.
-func (bs *BuildService) WaitForBuild(buildName string, buildNumber int, timeout time.Duration) (types.BuildStatusResponse, error) {
+func (bs *BuildService) WaitForBuild(buildName string, buildNumber int, timeout time.Duration, expectedStatuses []string) (types.BuildStatusResponse, error) {
 	var status types.BuildStatusResponse
 
 	baseDelay := 5 * time.Second // Initial delay of 5 seconds
@@ -159,6 +160,21 @@ func (bs *BuildService) WaitForBuild(buildName string, buildNumber int, timeout 
 
 	if err != nil && !errors.Is(err, errBuildNotFinished) {
 		return status, fmt.Errorf("error waiting for build %s: %w", buildName, err)
+	}
+
+	// Check if the final status matches any of the expected statuses (if provided)
+	if len(expectedStatuses) > 0 {
+		statusMatched := false
+		for _, expectedStatus := range expectedStatuses {
+			if strings.EqualFold(status.Status, expectedStatus) {
+				statusMatched = true
+				break
+			}
+		}
+
+		if !statusMatched {
+			return status, fmt.Errorf("build %s finished with status '%s', but expected one of: %v", buildName, status.Status, expectedStatuses)
+		}
 	}
 
 	return status, nil

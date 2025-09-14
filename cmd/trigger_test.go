@@ -108,7 +108,7 @@ func TestTrigger(t *testing.T) {
 			mockBuild.On("TriggerBuild", tt.buildTypeID, tt.branchName, tt.properties).Return(tt.triggerBuildResponse, tt.waitForBuildError)
 
 			if tt.waitForBuild {
-				mockBuild.On("WaitForBuild", tt.triggerBuildResponse.BuildType.Name, tt.triggerBuildResponse.ID, tt.waitForBuildTimeout).Return(tt.expectedWait, tt.waitForBuildError)
+				mockBuild.On("WaitForBuild", tt.triggerBuildResponse.BuildType.Name, tt.triggerBuildResponse.ID, tt.waitForBuildTimeout, []string(nil)).Return(tt.expectedWait, tt.waitForBuildError)
 				mockBuild.On("GetBuildStatus", tt.triggerBuildResponse.ID).Return(tt.expectedWait, tt.waitForBuildError)
 			}
 
@@ -119,7 +119,7 @@ func TestTrigger(t *testing.T) {
 				mockArtifacts.On("GetArtifactChildren", tt.triggerBuildResponse.ID).Return(tt.getArtifactChildrenResponse, tt.getArtifactChildrenError)
 			}
 
-			trigger(client, tt.buildTypeID, tt.branchName, tt.artifactsPath, tt.properties, tt.requireArtifacts, tt.waitForBuild, tt.downloadArtifacts, tt.waitForBuildTimeout)
+			trigger(client, tt.buildTypeID, tt.branchName, tt.artifactsPath, tt.properties, tt.requireArtifacts, tt.waitForBuild, tt.downloadArtifacts, tt.waitForBuildTimeout, nil)
 
 			mockBuild.AssertExpectations(t)
 			mockArtifacts.AssertExpectations(t)

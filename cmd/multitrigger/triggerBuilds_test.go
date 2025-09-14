@@ -5,9 +5,10 @@ import (
 	"bbox/pkg/utils/testutils"
 	"bbox/teamcity"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type buildTestCase struct {
@@ -319,7 +320,7 @@ func TestTriggerBuilds(t *testing.T) {
 				parameters = append(parameters, build.parameters)
 				mockBuildService.On("TriggerBuild", build.parameters.BuildTypeID, build.parameters.BranchName, build.parameters.PropertiesFlag).Return(build.triggerBuildResponse, build.triggerBuildError)
 				if !build.triggerShouldFail && tc.waitForBuilds {
-					mockBuildService.On("WaitForBuild", build.triggerBuildResponse.BuildType.Name, build.triggerBuildResponse.ID, tc.waitTimeout).Return(build.waitForBuildResponse, build.waitForBuildError)
+					mockBuildService.On("WaitForBuild", build.triggerBuildResponse.BuildType.Name, build.triggerBuildResponse.ID, tc.waitTimeout, []string(nil)).Return(build.waitForBuildResponse, build.waitForBuildError)
 					mockBuildService.On("GetBuildStatus", build.triggerBuildResponse.ID).Return(build.getBuildStatusResponse, build.getBuildStatusError)
 				}
 				if !build.waitShouldFail && build.parameters.DownloadArtifacts {

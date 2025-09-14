@@ -5,9 +5,10 @@ import (
 	"bbox/teamcity"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // triggerBuilds triggers the builds for each set of build parameters, wait and download artifacts if needed using work group.
@@ -67,7 +68,7 @@ func triggerBuilds(c *teamcity.Client, parameters []types.BuildParameters, waitF
 			if waitForBuilds {
 				log.Infof("waiting for build %s", triggerResponse.BuildType.Name)
 
-				build, err := c.Build.WaitForBuild(triggerResponse.BuildType.Name, triggerResponse.ID, waitTimeout)
+				build, err := c.Build.WaitForBuild(triggerResponse.BuildType.Name, triggerResponse.ID, waitTimeout, nil)
 				if err != nil {
 					log.Errorf("error waiting for build %s: %s", triggerResponse.BuildType.Name, err.Error())
 

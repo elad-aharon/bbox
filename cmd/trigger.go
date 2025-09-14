@@ -23,6 +23,7 @@ var (
 	waitForBuild        bool
 	waitForBuildTimeout = 15 * time.Minute
 	requireArtifacts    bool
+	expectedStatuses    []string
 )
 
 var triggerCmd = &cobra.Command{
@@ -30,6 +31,12 @@ var triggerCmd = &cobra.Command{
 	Short: "Trigger a single TeamCity Build",
 	Long:  `Trigger a single TeamCity Build`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Validate that expectedStatuses is only used with waitForBuild
+		if len(expectedStatuses) > 0 && !waitForBuild {
+			log.Errorf("--expected-statuses can only be used with --wait-for-build")
+			os.Exit(2)
+		}
+
 		url, err := url.Parse(TeamcityURL)
 		if err != nil {
 			log.Errorf("error parsing TeamCity URL: %s", err)
@@ -42,7 +49,7 @@ var triggerCmd = &cobra.Command{
 			log.Errorf("error initializing TeamCity Client: %s", err)
 			os.Exit(2)
 		}
-		trigger(client, buildTypeID, branchName, artifactsPath, propertiesFlag, requireArtifacts, waitForBuild, downloadArtifacts, waitForBuildTimeout)
+		trigger(client, buildTypeID, branchName, artifactsPath, propertiesFlag, requireArtifacts, waitForBuild, downloadArtifacts, waitForBuildTimeout, expectedStatuses)
 	},
 }
 
@@ -57,9 +64,10 @@ func init() {
 	triggerCmd.PersistentFlags().StringVarP(&branchName, "branch-name", "b", branchName, "The Branch Name")
 	triggerCmd.PersistentFlags().StringToStringVarP(&propertiesFlag, "properties", "p", nil, "The properties in key=value format")
 	triggerCmd.PersistentFlags().BoolVar(&requireArtifacts, "require-artifacts", false, "If downloadArtifacts is true, and no artifacts found, return an error")
+	triggerCmd.PersistentFlags().StringSliceVar(&expectedStatuses, "expected-statuses", nil, "Expected build statuses comma separated (only valid with --wait-for-build)")
 }
 
-func trigger(client *teamcity.Client, buildTypeID, branchName, artifactsPath string, propertiesFlag map[string]string, requireArtifacts, waitForBuild, downloadArtifacts bool, waitForBuildTimeout time.Duration) {
+func trigger(client *teamcity.Client, buildTypeID, branchName, artifactsPath string, propertiesFlag map[string]string, requireArtifacts, waitForBuild, downloadArtifacts bool, waitForBuildTimeout time.Duration, expectedStatuses []string) {
 	log.WithFields(log.Fields{
 		"TeamcityURL":       TeamcityURL,
 		"branchName":        branchName,
@@ -86,7 +94,7 @@ func trigger(client *teamcity.Client, buildTypeID, branchName, artifactsPath str
 	if waitForBuild {
 		log.Infof("waiting for build %s", triggerResponse.BuildType.Name)
 
-		build, err := client.Build.WaitForBuild(triggerResponse.BuildType.Name, triggerResponse.ID, waitForBuildTimeout)
+		build, err := client.Build.WaitForBuild(triggerResponse.BuildType.Name, triggerResponse.ID, waitForBuildTimeout, expectedStatuses)
 		if err != nil {
 			log.Error("error waiting for build: ", err)
 			os.Exit(2)
